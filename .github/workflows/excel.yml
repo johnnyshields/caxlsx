@@ -13,29 +13,63 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: Install ruby
-        uses: ruby/setup-ruby@v1
+      - name: Cache Office installation
+        id: cache-office
+        uses: actions/cache@v4
         with:
-          ruby-version: '3.4'
-          bundler-cache: true
+          path: |
+            C:\Program Files\Microsoft Office
+            C:\Program Files (x86)\Microsoft Office
+            C:\ProgramData\Microsoft\Office
+          key: ${{ runner.os }}-office365-excel-${{ hashFiles('.github/workflows/excel-integration.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-office365-excel-
 
-      - name: Install Ruby dependencies
-        run: |
-          gem install win32ole
-          # Add other gems as needed
-
-      - name: Install Office via Chocolatey
-        run: |
-          Write-Host "Installing Microsoft Office (this will take 10-20 minutes)..."
-          choco install office365business --params '/exclude:"Access Groove Lync OneDrive OneNote Outlook Publisher Teams Word"' -y --no-progress
+      - name: Install Office via Chocolatey (if not cached)
+        if: steps.cache-office.outputs.cache-hit != 'true'
         shell: powershell
+        run: |
+          Write-Host "Installing Microsoft Excel (this will take 10-20 minutes)..."
+          choco install office365business --params '/exclude:"Access Groove Lync OneDrive OneNote Outlook Publisher Teams Word PowerPoint"' -y --no-progress
         timeout-minutes: 25
 
-      - name: Verify Office COM objects are available
+      - name: Wait for Office installation to complete (if not cached)
+        if: steps.cache-office.outputs.cache-hit != 'true'
         shell: powershell
         run: |
-          Write-Host "Waiting for Office COM objects to register..."
+          Write-Host "Waiting for Excel COM objects to register..."
           Start-Sleep -Seconds 30
+
+      - name: Re-register Excel COM objects (if cached)
+        if: steps.cache-office.outputs.cache-hit == 'true'
+        shell: powershell
+        run: |
+          Write-Host "Re-registering Excel COM objects from cache..."
+
+          # Find Office installation path
+          $officePath = if (Test-Path "C:\Program Files\Microsoft Office\Office16") {
+            "C:\Program Files\Microsoft Office\Office16"
+          } elseif (Test-Path "C:\Program Files (x86)\Microsoft Office\Office16") {
+            "C:\Program Files (x86)\Microsoft Office\Office16"
+          } else {
+            Write-Error "Office installation not found"
+            exit 1
+          }
+
+          Write-Host "Office found at: $officePath"
+
+          # Re-register Excel COM objects
+          $excelPath = Join-Path $officePath "EXCEL.EXE"
+          if (Test-Path $excelPath) {
+            Write-Host "Registering Excel..."
+            Start-Process -FilePath $excelPath -ArgumentList "/regserver" -Wait -NoNewWindow
+          }
+
+          Start-Sleep -Seconds 5
+
+      - name: Verify Excel COM objects are available
+        shell: powershell
+        run: |
           try {
             Write-Host "Testing Excel COM object..."
             $excel = New-Object -ComObject Excel.Application
@@ -48,6 +82,12 @@ jobs:
             Write-Error "🔥 Excel installation in Github Actions FAILED: Failed to create COM objects: $_"
             exit 1
           }
+
+      - name: Install ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4'
+          bundler-cache: true
 
       - name: Run tests
         run: |
