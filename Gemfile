@@ -26,7 +26,7 @@ group :test do
   gem 'timecop'
   gem 'webmock'
   gem 'rspec-mocks'
-  gem 'win32ole', platforms: :windows
+  gem 'win32ole', platforms: [:mingw, :x64_mingw, :mswin, :mswin64]
 end
 
 group :profile do
