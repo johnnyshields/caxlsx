@@ -73,12 +73,13 @@ jobs:
             Write-Host "Testing Excel COM object..."
             $excel = New-Object -ComObject Excel.Application
             $excel.Visible = $false
-            Write-Host "✓ Excel COM object created successfully"
+            Write-Host "Excel COM object created successfully"
             Write-Host "Excel Version: $($excel.Version)"
             $excel.Quit()
             [System.Runtime.Interopservices.Marshal]::ReleaseComObject($excel) | Out-Null
           } catch {
-            Write-Error "Failed to create COM objects: $_"
+            Write-Error "Failed to create COM objects"
+            Write-Error $_.Exception.Message
             exit 1
           }
 
