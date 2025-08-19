@@ -120,32 +120,27 @@ jobs:
         timeout-minutes: 20
         continue-on-error: true  # Don't fail if license activation is required
 
-      - name: Verify Excel can launch (no license required)
+      - name: Verify Excel can launch without license
         run: |
           if [ -d "/Applications/Microsoft Excel.app" ]; then
             echo "✓ Excel app bundle found"
 
             # Just verify the app can launch and quit immediately
-            # This should work even without a license
-            osascript <<EOF || true
-            try
+            osascript -e 'try
               tell application "Microsoft Excel"
-                -- Just launch the app
                 activate
                 delay 2
-                -- Immediately quit without doing anything
                 quit
               end tell
               return "Excel launched successfully"
             on error errMsg
               return "Excel launch test: " & errMsg
-            end try
-            EOF
+            end try' || true
 
             echo "Basic Excel launch test completed"
           else
             echo "❌ Excel not found - failing build"
-            exit 1  # FAIL THE BUILD HERE
+            exit 1
           fi
 
       - name: Install ruby
