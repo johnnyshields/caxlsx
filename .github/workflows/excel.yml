@@ -1,0 +1,54 @@
+name: Excel Integration
+on:
+  push:
+    branches: ["*"]
+  pull_request:
+    branches: ["*"]
+
+jobs:
+  test-office-com:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Install ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4'
+          bundler-cache: true
+
+      - name: Install Ruby dependencies
+        run: |
+          gem install win32ole
+          # Add other gems as needed
+
+      - name: Install Office via Chocolatey
+        run: |
+          Write-Host "Installing Microsoft Office (this will take 10-20 minutes)..."
+          choco install office365business --params '/exclude:"Access Groove Lync OneDrive OneNote Outlook Publisher Teams Word"' -y --no-progress
+        shell: powershell
+        timeout-minutes: 25
+
+      - name: Verify Office COM objects are available
+        shell: powershell
+        run: |
+          Write-Host "Waiting for Office COM objects to register..."
+          Start-Sleep -Seconds 30
+          try {
+            Write-Host "Testing Excel COM object..."
+            $excel = New-Object -ComObject Excel.Application
+            $excel.Visible = $false
+            Write-Host "✅ Excel COM object created successfully"
+            Write-Host "Excel Version: $($excel.Version)"
+            $excel.Quit()
+            [System.Runtime.Interopservices.Marshal]::ReleaseComObject($excel) | Out-Null
+          } catch {
+            Write-Error "🔥 Excel installation in Github Actions FAILED: Failed to create COM objects: $_"
+            exit 1
+          }
+
+      - name: Run tests
+        run: |
+          bundle exec rake
