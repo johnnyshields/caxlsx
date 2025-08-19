@@ -8,7 +8,6 @@ on:
 jobs:
   test-excel-windows:
     runs-on: windows-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
