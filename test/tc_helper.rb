@@ -14,7 +14,10 @@ require 'timecop'
 require 'webmock/minitest'
 require 'axlsx'
 require 'ooxml_crypt' if RUBY_ENGINE == 'ruby'
-require 'win32ole' rescue LoadError
+begin
+  require 'win32ole'
+rescue LoadError # rubocop:disable Lint/SuppressedException
+end
 
 module Minitest
   class Test
