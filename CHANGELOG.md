@@ -2,6 +2,7 @@ CHANGELOG
 ---------
 - **Unreleased**: 4.4.0
   - [PR #469](https://github.com/caxlsx/caxlsx/pull/469) Add default theme file to Excel package.
+  - [PR #350](https://github.com/caxlsx/caxlsx/pull/350) Add package-level encryption and password protection
 
 - **August.16.25**: 4.3.0
   - [PR #421](https://github.com/caxlsx/caxlsx/pull/421) Add Rubyzip >= 2.4 support
