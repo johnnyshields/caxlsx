@@ -7,6 +7,10 @@ group :development, :test do
   gem 'kramdown'
   gem 'yard'
 
+  if RUBY_ENGINE == 'ruby'
+    gem 'ooxml_crypt'
+  end
+
   if RUBY_VERSION >= '2.7'
     gem 'rubocop', '1.79.2'
     gem 'rubocop-minitest', '0.38.1'
@@ -21,6 +25,8 @@ group :test do
   gem 'minitest'
   gem 'timecop'
   gem 'webmock'
+  gem 'rspec-mocks'
+  gem 'win32ole', platforms: [:mingw, :x64_mingw, :mswin, :mswin64]
 end
 
 group :profile do

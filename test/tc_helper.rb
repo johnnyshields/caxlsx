@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../lib"
+
 require 'simplecov'
 SimpleCov.start do
   add_filter "/test/"
@@ -8,9 +9,15 @@ SimpleCov.start do
 end
 
 require 'minitest/autorun'
+require 'rspec/mocks/minitest_integration'
 require 'timecop'
 require 'webmock/minitest'
 require 'axlsx'
+require 'ooxml_crypt' if RUBY_ENGINE == 'ruby'
+begin
+  require 'win32ole'
+rescue LoadError # rubocop:disable Lint/SuppressedException
+end
 
 module Minitest
   class Test
@@ -22,6 +29,28 @@ module Minitest
       yield
     rescue StandardError => e
       raise Minitest::Assertion, "Expected no exception, but raised: #{e.class.name} with message '#{e.message}'"
+    end
+
+    def windows?
+      RUBY_PLATFORM =~ /mswin|mingw|cygwin/
+    end
+
+    def excel_available?
+      return @excel_available if defined?(@excel_available)
+
+      @excel_available = windows? &&
+                         defined?(WIN32OLE) &&
+                         begin
+                           excel = WIN32OLE.new('Excel.Application')
+                           excel.Quit
+                           true
+                         rescue StandardError
+                           false
+                         end
+    end
+
+    def ooxml_crypt_available?
+      defined?(OoxmlCrypt)
     end
   end
 end
