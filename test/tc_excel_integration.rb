@@ -2,12 +2,6 @@
 
 require 'tc_helper'
 
-begin
-  require 'ooxml_crypt'
-rescue LoadError
-  # ooxml_crypt not available
-end
-
 class TestEncryptionCompatibility < Test::Unit::TestCase
   def setup
     skip_unless_windows_with_excel
