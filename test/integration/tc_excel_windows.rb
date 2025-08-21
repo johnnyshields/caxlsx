@@ -64,17 +64,13 @@ class TestExcelWindows < Minitest::Test
   end
 
   def require_or_skip!
-    flunk('This test requires Excel Windows integration') if ENV['CI_EXCEL_WINDOWS'] && !excel_windows?
-    skip('Excel Windows integration tests only run on Windows MRI Ruby') unless windows_mri?
-    skip('Excel Windows integration tests require Microsoft Excel to be installed') unless excel_windows?
+    flunk('This test requires Excel Windows integration') if ENV['CI_EXCEL_WINDOWS'] && !excel_windows_mri?
+    skip('Excel Windows integration tests only run on Windows MRI Ruby') unless windows? && mri?
+    skip('Excel Windows integration tests require Microsoft Excel to be installed') unless excel_windows_mri?
   end
 
-  def windows_mri?
-    windows? && !jruby? && !truffle_ruby?
-  end
-
-  def excel_windows?
-    windows_mri? && excel_app_available?
+  def excel_windows_mri?
+    windows? && mri? && excel_app_available?
   end
 
   def excel_app_available?
