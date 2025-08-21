@@ -39,7 +39,7 @@ module Minitest
       defined?(JRUBY_VERSION)
     end
 
-    def truffleruby?
+    def truffle_ruby?
       defined?(TruffleRuby)
     end
   end
